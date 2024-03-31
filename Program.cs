@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using SecureCryptAPI.Middleware;
+
 namespace SecureCryptAPI
 {
     public class Program
@@ -11,6 +14,10 @@ namespace SecureCryptAPI
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
+
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            builder.Services.AddDbContext<YourDbContext>(options => options.UseSqlServer(connectionString));
+
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
@@ -23,9 +30,12 @@ namespace SecureCryptAPI
             }
 
             app.UseAuthorization();
+            app.UseAuthentication();
 
 
             app.MapControllers();
+
+            app.UseMiddleware<APIKeyMiddleware>();
 
             app.Run();
         }
