@@ -17,8 +17,7 @@ namespace SecureCryptAPI.Middleware
 
         public async Task Invoke(HttpContext httpContext)
         {
-            if (!httpContext.Request.Headers.TryGetValue(APIKEY, out var extractedApiKey) ||
-    !httpContext.Request.Headers.TryGetValue(EMAIL, out var extractedEmail))
+            if (!httpContext.Request.Headers.TryGetValue(APIKEY, out var extractedApiKey) || !httpContext.Request.Headers.TryGetValue(EMAIL, out var extractedEmail))
             {
                 httpContext.Response.StatusCode = 401;
                 await httpContext.Response.WriteAsync("Email or API Key missing");
@@ -47,13 +46,4 @@ namespace SecureCryptAPI.Middleware
 
         }
     }
-
-    // Extension method used to add the middleware to the HTTP request pipeline.
-    //public static class APIKeyMiddlewareExtensions
-    //{
-    //    public static IApplicationBuilder UseAPIKeyMiddleware(this IApplicationBuilder builder)
-    //    {
-    //        return builder.UseMiddleware<APIKeyMiddleware>();
-    //    }
-    //}
 }
