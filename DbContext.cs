@@ -6,17 +6,12 @@ namespace SecureCryptAPI
 {
     public class YourDbContext : DbContext
     {
-        public YourDbContext()
-        {
-        }
-
-        public YourDbContext(DbContextOptions<YourDbContext> options)
-            : base(options)
+        public YourDbContext(DbContextOptions<YourDbContext> options) : base(options)
         {
         }
 
         public DbSet<User> Users { get; set; }
-        public DbSet<EncryptDecryptLog> EncryptDecryptLogs { get; set; }
+        public DbSet<EncryptDecryptLog> EncryptDecryptLog { get; set; }
 
     }
 

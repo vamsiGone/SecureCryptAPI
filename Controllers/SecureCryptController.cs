@@ -13,6 +13,12 @@ namespace SecureCryptAPI.Controllers
     [ApiController]
     public class SecureCryptController : ControllerBase
     {
+        private readonly YourDbContext _db;
+        public SecureCryptController(YourDbContext db)
+        {
+            _db = db;
+        }
+
         [Route("~/SecureCrypt")]
         public string SecureCrypt(SecureCrypt sc)
         {
@@ -194,10 +200,9 @@ namespace SecureCryptAPI.Controllers
             }
         }
 
-        public static int InsertLog(string input, string output, string pkey, string mode, int userId)
+        protected int InsertLog(string input, string output, string pkey, string mode, int userId)
         {
-            using (var context = new YourDbContext())
-            {
+
                 var log = new EncryptDecryptLog
                 {
                     PlainText = input,
@@ -207,16 +212,14 @@ namespace SecureCryptAPI.Controllers
                     UserId = userId
                 };
 
-                context.EncryptDecryptLogs.Add(log);
-                int rowsAffected = context.SaveChanges();
+                _db.EncryptDecryptLog.Add(log);
+                int rowsAffected = _db.SaveChanges();
                 return rowsAffected;
-            }
         }
 
-        public static  int GetUserIdByEmail(string email)
+        protected int GetUserIdByEmail(string email)
         {
-            var _dbContext = new YourDbContext();
-            var user = _dbContext.Users.FirstOrDefault(u => u.Email == email);
+            var user = _db.Users.FirstOrDefault(u => u.Email == email);
             if (user != null)
             {
                 return user.Userid;
@@ -225,12 +228,15 @@ namespace SecureCryptAPI.Controllers
         }
 
         [Route("~/SecureCrypt/History")]
-        public List<HistoryEntry> History(int userId)
+        public List<HistoryEntry> History()
         {
-            var _dbContext = new YourDbContext();
-            var history = _dbContext.EncryptDecryptLogs
+            string? email = HttpContext.Session.GetString("Email");
+            int userId = GetUserIdByEmail(email);
+
+            var history = _db.EncryptDecryptLog
                 .Where(log => log.UserId == userId)
                 .OrderBy(log => log.Id)
+                .ToList()
                 .Select((log, index) => new HistoryEntry
                 {
                     Sno = index + 1,
@@ -245,11 +251,14 @@ namespace SecureCryptAPI.Controllers
 
             return history;
         }
+
     }
     public class SecureCrypt
     {
         public string? InputValue { get; set; }
         public string? PrivateKey { get; set; }
         public bool IsEncrypt { get; set; }
+
     }
+
 }
