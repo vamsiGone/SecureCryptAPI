@@ -18,11 +18,17 @@ namespace SecureCryptAPI
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<YourDbContext>(options => options.UseSqlServer(connectionString));
 
+            builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddSession(options =>
+            {
+                options.Cookie.Name = ".YourApp.Session";
+                options.IdleTimeout = TimeSpan.FromMinutes(30);
+            });
+
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -31,6 +37,7 @@ namespace SecureCryptAPI
 
             app.UseAuthorization();
             app.UseAuthentication();
+            app.UseSession();
 
 
             app.MapControllers();

@@ -26,6 +26,7 @@ namespace SecureCryptAPI.Middleware
 
             var apiKey = extractedApiKey.ToString(); 
             var email = extractedEmail.ToString();
+            httpContext.Session.SetString("Email",email);
 
             var serviceProvider = httpContext.RequestServices;
             using (var scope = serviceProvider.CreateScope())

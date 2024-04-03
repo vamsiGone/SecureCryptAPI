@@ -1,5 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using System.Data;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -30,6 +34,12 @@ namespace SecureCryptAPI.Controllers
             {
                 result = DecryptString(sc.InputValue, privateKey);
             }
+            string mode = sc.IsEncrypt ? "Encrypt" : "Decrypt";
+            string? email= HttpContext.Session.GetString("Email");
+
+            int userid = GetUserIdByEmail(email);
+
+            InsertLog(sc.InputValue, result, privateKey, mode, userid);
             return result;
         }
         public static string EncryptString(string Normal_String, string SecretKey)
@@ -183,12 +193,63 @@ namespace SecureCryptAPI.Controllers
                 return null;
             }
         }
+
+        public static int InsertLog(string input, string output, string pkey, string mode, int userId)
+        {
+            using (var context = new YourDbContext())
+            {
+                var log = new EncryptDecryptLog
+                {
+                    PlainText = input,
+                    EncryptRDecryptText = output,
+                    privatekey = pkey,
+                    Mode = mode,
+                    UserId = userId
+                };
+
+                context.EncryptDecryptLogs.Add(log);
+                int rowsAffected = context.SaveChanges();
+                return rowsAffected;
+            }
+        }
+
+        public static  int GetUserIdByEmail(string email)
+        {
+            var _dbContext = new YourDbContext();
+            var user = _dbContext.Users.FirstOrDefault(u => u.Email == email);
+            if (user != null)
+            {
+                return user.Userid;
+            }
+            else { return 0; }
+        }
+
+        [Route("~/SecureCrypt/History")]
+        public List<HistoryEntry> History(int userId)
+        {
+            var _dbContext = new YourDbContext();
+            var history = _dbContext.EncryptDecryptLogs
+                .Where(log => log.UserId == userId)
+                .OrderBy(log => log.Id)
+                .Select((log, index) => new HistoryEntry
+                {
+                    Sno = index + 1,
+                    Id = log.Id,
+                    PlainText = log.PlainText,
+                    EncryptRDecryptText = log.EncryptRDecryptText,
+                    privatekey = log.privatekey,
+                    Mode = log.Mode,
+                    UserId = log.UserId
+                })
+                .ToList();
+
+            return history;
+        }
     }
     public class SecureCrypt
     {
-        public string InputValue { get; set; }
+        public string? InputValue { get; set; }
         public string? PrivateKey { get; set; }
         public bool IsEncrypt { get; set; }
     }
-
 }
