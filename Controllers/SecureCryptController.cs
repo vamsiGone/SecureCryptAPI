@@ -225,8 +225,9 @@ namespace SecureCryptAPI.Controllers
         }
 
         [Route("~/SecureCrypt/History")]
-        public List<HistoryEntry> History(int userId)
+        public List<HistoryEntry> History(string emailId)
         {
+            int userId = GetUserIdByEmail(emailId);
             var _dbContext = new YourDbContext();
             var history = _dbContext.EncryptDecryptLogs
                 .Where(log => log.UserId == userId)
